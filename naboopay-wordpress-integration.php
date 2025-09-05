@@ -71,6 +71,7 @@ function woocommerce_naboopay_init()
         public $secret_key;
         public $status_after_payment;
         public $webhook_url;
+        public $fees_customer_side;
 
         public function __construct()
         {
@@ -91,6 +92,7 @@ function woocommerce_naboopay_init()
             $this->secret_key = isset($this->settings['secret_key']) ? sanitize_text_field($this->settings['secret_key']) : '';
             $this->status_after_payment = isset($this->settings['status_after_payment']) ? sanitize_text_field($this->settings['status_after_payment']) : 'completed';
             $this->webhook_url = rest_url('naboopay/v1/webhook');
+            $this->fees_customer_side = isset($this->settings['fees_customer_side']) ? sanitize_text_field($this->settings['fees_customer_side']) : 'yes';
 
             // actions
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
@@ -140,6 +142,13 @@ function woocommerce_naboopay_init()
                         'completed' => __('Terminé', 'naboopay-gateway'),
                     ),
                     'default' => 'completed',
+                ),
+                'fees_customer_side' => array(
+                    'title' => __('Frais à la charge du client', 'naboopay-gateway'),
+                    'type' => 'checkbox',
+                    'label' => __('Facturer les frais au client (fees_customer_side)', 'naboopay-gateway'),
+                    'description' => __('Si coché, les frais sont à la charge du client (true).', 'naboopay-gateway'),
+                    'default' => 'yes',
                 ),
                 'webhook_url' => array(
                     'title' => __('URL Webhook', 'naboopay-gateway'),
@@ -240,7 +249,7 @@ function woocommerce_naboopay_init()
                     'category' => 'tax',
                     'amount' => $this->convert_amount_to_minor_units($tax_total),
                     'quantity' => 1,
-                    'description' =finit> 'Taxes applicables',
+                    'description' => 'Taxes applicables',
                 );
                 $calculated_sum += $tax_total;
             }
@@ -266,6 +275,7 @@ function woocommerce_naboopay_init()
                 'is_merchant' => false,
                 'success_url' => $this->get_return_url($order),
                 'error_url' => wc_get_checkout_url() . '?payment_error=true',
+                'fees_customer_side' => ($this->fees_customer_side === 'yes') ? true : false,
             );
 
             $response = $this->create_naboopay_transaction($payment_data);
