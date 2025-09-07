@@ -353,8 +353,8 @@ function woocommerce_naboopay_init()
                 $params = array(
                     'prefilled' => 'true',
                     'phone_number' => str_replace(array(' ', '-'), '', $billing_phone),
-                    'first_name' => rawurlencode($billing_first_name),
-                    'last_name' => rawurlencode($billing_last_name)
+                    'first_name' => $billing_first_name,
+                    'last_name' => $billing_last_name
                 );
 
                 // Ajouter les paramètres à l'URL en gérant le "?" ou "&"
