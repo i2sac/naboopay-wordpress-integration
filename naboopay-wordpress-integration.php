@@ -344,6 +344,7 @@ function woocommerce_naboopay_init()
                     return (object) array('message' => 'URL de paiement non fournie par l\'API');
                 }
 
+                /* 
                 // Récupérer les informations du client
                 $billing_phone = $order->get_billing_phone();
                 $billing_first_name = $order->get_billing_first_name();
@@ -361,6 +362,7 @@ function woocommerce_naboopay_init()
                 $checkout_url = $response_data->checkout_url;
                 $separator = parse_url($checkout_url, PHP_URL_QUERY) ? '&' : '?';
                 $response_data->checkout_url = $checkout_url . $separator . http_build_query($params);
+                */
 
                 return $response_data;
             } catch (Exception $e) {
