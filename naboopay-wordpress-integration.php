@@ -278,7 +278,7 @@ function woocommerce_naboopay_init()
                 'fees_customer_side' => ($this->fees_customer_side === 'yes') ? true : false,
             );
 
-            $response = $this->create_naboopay_transaction($payment_data);
+            $response = $this->create_naboopay_transaction($payment_data, $order);
 
             if (is_object($response) && isset($response->checkout_url)) {
                 if (isset($response->order_id)) {
@@ -297,7 +297,7 @@ function woocommerce_naboopay_init()
             }
         }
 
-        private function create_naboopay_transaction($payment_data)
+        private function create_naboopay_transaction($payment_data, $order)
         {
             $api_url = 'https://api.naboopay.com/api/v1/transaction/create-transaction';
 
@@ -343,6 +343,24 @@ function woocommerce_naboopay_init()
                     $logger->error('Réponse Naboopay invalide: checkout_url manquant', array('source' => 'naboopay'));
                     return (object) array('message' => 'URL de paiement non fournie par l\'API');
                 }
+
+                // Récupérer les informations du client
+                $billing_phone = $order->get_billing_phone();
+                $billing_first_name = $order->get_billing_first_name();
+                $billing_last_name = $order->get_billing_last_name();
+
+                // Construire les paramètres d'URL
+                $params = array(
+                    'prefilled' => 'true',
+                    'phone_number' => str_replace(array('+', ' ', '-'), '', $billing_phone),
+                    'first_name' => urlencode($billing_first_name),
+                    'last_name' => urlencode($billing_last_name)
+                );
+
+                // Ajouter les paramètres à l'URL en gérant le "?" ou "&"
+                $checkout_url = $response_data->checkout_url;
+                $separator = parse_url($checkout_url, PHP_URL_QUERY) ? '&' : '?';
+                $response_data->checkout_url = $checkout_url . $separator . http_build_query($params);
 
                 return $response_data;
             } catch (Exception $e) {
